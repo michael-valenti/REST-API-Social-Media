@@ -43,4 +43,17 @@ router.delete("/:id", async(req,res)=>{
     }
 });
 
+//Get a User
+router.get("/:id", async (req, res)=>{
+    try{
+    const user = await User.findById(req.params.id);
+    //do not send password or updatedAt into the doc we will return
+    const {password, updatedAt, ...other} = user._doc;
+    res.status(200).json(other);
+    }catch(err){
+        console.log(err);
+        return res.status(500).json(err);
+    }
+    });
+    
 module.exports = router;
