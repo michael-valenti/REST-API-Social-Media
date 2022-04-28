@@ -65,6 +65,7 @@ router.put("/:id/follow", async (req, res)=>{
 
                 const user = await User.findById(req.params.id);
                 const currentUser = await User.findById(req.body.userId);
+                //if user is not already in the followers list, follow them
                 if(!user.followers.includes(req.body.userId)){
                 await user.updateOne({$addToSet:{followers: req.body.userId}});
                 await currentUser.updateOne({$addToSet:{following: req.params.id}});
@@ -76,11 +77,33 @@ router.put("/:id/follow", async (req, res)=>{
             res.status(500).json(err);
         }
     }else{
-        res.status(403).json("you cannot follow yourself!")
+        res.status(403).json("You cannot follow yourself!")
     }
 });
 
 //Unfollow a User
+router.put("/:id/unfollow", async (req, res)=>{
+    //check if users are the same (logged in user vs the one they are trying to follow)
+    if(req.body.userId !== req.params.id){
+        try{
+
+                const user = await User.findById(req.params.id);
+                const currentUser = await User.findById(req.body.userId);
+                //if user is in the followers list, unfollow them
+                if(user.followers.includes(req.body.userId)){
+                await user.updateOne({$pull:{followers: req.body.userId}});
+                await currentUser.updateOne({$pull:{following: req.params.id}});
+                res.status(200).json("User has been unfollowed.");
+                }else{
+                    res.status(403).json("You do not follow this user.");
+                }
+        }catch(err){
+            res.status(500).json(err);
+        }
+    }else{
+        res.status(403).json("You cannot unfollow yourself!")
+    }
+});
 
 
 module.exports = router;
